@@ -124,6 +124,43 @@ pnpm build          # 型チェック + コンパイル
 
 [`skills/gemini-team`](skills/gemini-team) は任意の MCP クライアント用スキルで、サーバーの `gemini_custom_agent` プリミティブをマルチエージェントワークフロー（並列の「コーディネーター」、反復の「生成 → 批評」、およびそれらの連結モード）に合成します。「サーバーは薄く保ち、クライアントが編成する」という意図された役割分担を示す実例です。
 
+## Gemini への委譲（gemini-delegate）
+
+[`agents/gemini-delegate.md`](agents/gemini-delegate.md) は任意の Claude Code **サブエージェント**で、自己完結した単一タスクを *隔離されたコンテキスト* で Gemini に移譲し、蒸留した結果だけを返します。Gemini の冗長な生出力が main スレッドに入らないため、高価な main の会話を小さく保て、トークン消費削減と調査・開発の高速化につながります。ラッパは親スレッドのモデルを継承します。削減効果は安価なモデルではなく、コンテキスト隔離と「文脈整形 → 委譲 → 蒸留」という薄い責務から得られます。
+
+### インストール（手動コピー）
+
+```bash
+# プロジェクト単位
+mkdir -p .claude/agents && cp agents/gemini-delegate.md .claude/agents/
+
+# 全プロジェクト（ユーザーレベル）
+mkdir -p ~/.claude/agents && cp agents/gemini-delegate.md ~/.claude/agents/
+```
+
+### 任意: 委譲チェックの hook
+
+毎ターン委譲を検討させるには、`settings.json` に `UserPromptSubmit` hook を追加します。その stdout が context に注入されます。
+
+> ⚠️ `command` は **必ず1行の JSON 文字列**にします。リテラル改行や複数行の command は `settings.json` 全体を「Invalid or malformed JSON」にし、*すべての*設定を無効化します。編集後は `python3 -c "import json;json.load(open('<path>/settings.json'))"` で検証してください。
+
+```json
+{
+  "type": "command",
+  "command": "printf '%s' '<delegation-check>文脈をまとめて渡せば完結する独立タスク（調査/レビュー/設計/要約/メディア解析/コード実行）がこのターンに含まれるなら、回答前に gemini-delegate への委譲を検討する。最終判断・ファイル編集/Git・オーケストレーションは Claude が担う。軽微な応答ではスキップ可。</delegation-check>'"
+}
+```
+
+### 委譲ポリシー
+
+| 状況 | 使うもの |
+|------|---------|
+| 自己完結した単一タスクを移譲 | **gemini-delegate** |
+| 多角的レビュー / マルチエージェント統括 | **`skills/gemini-team`**（コーディネーター / 反復） |
+| 最終判断・ファイル編集/Git・オーケストレーション・密な逐次制御 | **Claude 本体が直接** |
+
+詳細は [`agents/`](agents/) と [クイックスタート](specs/022-gemini-delegation/quickstart.md) を参照してください。
+
 ## ライセンス
 
 [MIT](LICENSE) © Daisuke ITO

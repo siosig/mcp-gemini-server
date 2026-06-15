@@ -124,6 +124,43 @@ pnpm build          # type-check and compile
 
 [`skills/gemini-team`](skills/gemini-team) is an optional MCP-client skill that composes the server's `gemini_custom_agent` primitive into multi-agent workflows (parallel "coordinator", iterative "generate → critique", and a combined mode). It demonstrates the intended division of labor: the server stays thin, the client orchestrates.
 
+## Delegating to Gemini (gemini-delegate)
+
+[`agents/gemini-delegate.md`](agents/gemini-delegate.md) is an optional Claude Code **subagent** that offloads a single, self-contained task to Gemini in an *isolated context* and returns only a distilled result. Because Gemini's verbose output never enters the main thread, it keeps the (expensive) main Claude conversation small — cutting token use and speeding up research/dev. The wrapper inherits the parent thread's model; the savings come from context isolation and a thin "package → delegate → distill" responsibility, not from a cheaper model.
+
+### Install (manual copy)
+
+```bash
+# Per-project
+mkdir -p .claude/agents && cp agents/gemini-delegate.md .claude/agents/
+
+# All projects (user-level)
+mkdir -p ~/.claude/agents && cp agents/gemini-delegate.md ~/.claude/agents/
+```
+
+### Optional: a delegation-check hook
+
+To nudge Claude to consider delegation every turn, add a `UserPromptSubmit` hook to your `settings.json`. Its stdout is injected into context.
+
+> ⚠️ The `command` **must be a single-line JSON string**. A literal newline / multi-line command makes the whole `settings.json` "Invalid or malformed JSON" and disables *all* settings. After editing, validate with `python3 -c "import json;json.load(open('<path>/settings.json'))"`.
+
+```json
+{
+  "type": "command",
+  "command": "printf '%s' '<delegation-check>If this turn contains an independent, context-packageable task (research/review/design/summarize/media analysis/code execution), consider delegating it to gemini-delegate before answering. Final decisions, file edits/Git, and orchestration stay with Claude. Skip for trivial replies.</delegation-check>'"
+}
+```
+
+### Delegation policy
+
+| Situation | Use |
+|-----------|-----|
+| A single, self-contained task to offload | **gemini-delegate** |
+| Multi-perspective review / multi-agent orchestration | **`skills/gemini-team`** (coordinator / iterative) |
+| Final decisions, file edits / Git, orchestration, tight step-by-step control | **Main Claude, directly** |
+
+See [`agents/`](agents/) for details and the [quickstart](specs/022-gemini-delegation/quickstart.md).
+
 ## License
 
 [MIT](LICENSE) © Daisuke ITO
