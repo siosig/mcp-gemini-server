@@ -1,0 +1,58 @@
+{
+  "name": "gemini-mcp-server",
+  "version": "2.0.0",
+  "description": "A thin, stdio Model Context Protocol (MCP) server exposing the Google Gemini API as composable primitives: chat, web search, role-based agents, multimodal analysis, image generation, code execution, and file management.",
+  "type": "module",
+  "main": "dist/index.js",
+  "author": "Daisuke ITO <siosig@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/siosig/mcp-gemini.git"
+  },
+  "homepage": "https://github.com/siosig/mcp-gemini#readme",
+  "bugs": {
+    "url": "https://github.com/siosig/mcp-gemini/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "gemini",
+    "google-gemini",
+    "llm",
+    "ai",
+    "stdio",
+    "typescript"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "README.ja.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node --max-old-space-size=256 --optimize-for-size --max-semi-space-size=8 --disable-proto=delete --disallow-code-generation-from-strings dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:watch": "vitest"
+  },
+  "engines": {
+    "node": ">=24.14.0"
+  },
+  "dependencies": {
+    "@google/genai": "^2.6.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "busboy": "^1.6.0",
+    "pino": "^10.3.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/busboy": "^1.5.4",
+    "@types/node": "^25.9.1",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.7"
+  }
+}
