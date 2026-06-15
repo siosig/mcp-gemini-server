@@ -2,7 +2,7 @@
   "mcpServers": {
     "gemini": {
       "command": "npx",
-      "args": ["-y", "gemini-mcp-server@2"],
+      "args": ["-y", "mcp-gemini-server@2"],
       "env": {
         "GEMINI_API_KEY": "${GEMINI_API_KEY}"
       }

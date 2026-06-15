@@ -47,7 +47,7 @@ export function loadConfigFileIntoEnv(): void {
     // ENOENT (file absent) is the normal case — say nothing.
     if ((err as NodeJS.ErrnoException)?.code !== "ENOENT") {
       process.stderr.write(
-        `[gemini-mcp-server] Could not read config file ${path}: ${(err as Error).message}\n`,
+        `[mcp-gemini-server] Could not read config file ${path}: ${(err as Error).message}\n`,
       );
     }
     return;
@@ -58,14 +58,14 @@ export function loadConfigFileIntoEnv(): void {
     parsed = JSON.parse(raw);
   } catch (err) {
     process.stderr.write(
-      `[gemini-mcp-server] Ignoring malformed config file ${path}: ${(err as Error).message}\n`,
+      `[mcp-gemini-server] Ignoring malformed config file ${path}: ${(err as Error).message}\n`,
     );
     return;
   }
 
   if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
     process.stderr.write(
-      `[gemini-mcp-server] Ignoring config file ${path}: expected a JSON object\n`,
+      `[mcp-gemini-server] Ignoring config file ${path}: expected a JSON object\n`,
     );
     return;
   }
@@ -73,7 +73,7 @@ export function loadConfigFileIntoEnv(): void {
   for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
     if (typeof value !== "string") {
       process.stderr.write(
-        `[gemini-mcp-server] Skipping config key "${key}": value is not a string\n`,
+        `[mcp-gemini-server] Skipping config key "${key}": value is not a string\n`,
       );
       continue;
     }

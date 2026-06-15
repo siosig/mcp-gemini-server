@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * gemini-mcp-server entry point.
+ * mcp-gemini-server entry point.
  * stdio transport only: the MCP client spawns this process and talks over stdin/stdout.
  */
 
@@ -21,7 +21,7 @@ loadConfigFileIntoEnv();
 validateEnv();
 
 const PKG_VERSION: string = pkg.version;
-const SERVER_NAME = "gemini-mcp-server";
+const SERVER_NAME = "mcp-gemini-server";
 
 // Keep stdout exclusive to JSON-RPC by redirecting console.log/info to stderr.
 // This prevents stray output from third-party libraries from corrupting the JSON-RPC stream.

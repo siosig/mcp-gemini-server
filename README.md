@@ -1,4 +1,4 @@
-# gemini-mcp-server
+# mcp-gemini-server
 
 A thin, **stdio** [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that exposes the Google Gemini API as a small set of composable primitives. It is designed to be launched directly by an MCP client (Claude Desktop, Cursor, Cline, and any other MCP-compatible client) over stdio.
 
@@ -65,12 +65,12 @@ Then provide your Gemini API key in **one** of these ways:
   Precedence is **environment variable > config file**. Override the path with
   `GEMINI_MCP_CONFIG=/path/to/file.json`.
 
-The plugin's MCP server launches via `npx -y gemini-mcp-server@2`. If `npx`
+The plugin's MCP server launches via `npx -y mcp-gemini-server@2`. If `npx`
 on-demand resolution is unreliable in your environment (notably the VS Code
 extension), install the binary globally and point the server at it directly:
 
 ```bash
-npm i -g gemini-mcp-server
+npm i -g mcp-gemini-server
 ```
 
 Get a Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey).
