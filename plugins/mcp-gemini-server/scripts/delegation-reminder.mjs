@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * UserPromptSubmit hook for the mcp-gemini plugin.
+ * UserPromptSubmit hook for the mcp-gemini-server plugin.
  *
  * Emits a single-line <delegation-check> reminder to stdout, which Claude Code
  * injects into context. Nudges Claude to consider delegating a self-contained

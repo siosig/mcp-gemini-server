@@ -11,11 +11,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/siosig/mcp-gemini.git"
+    "url": "git+https://github.com/siosig/mcp-gemini-server.git"
   },
-  "homepage": "https://github.com/siosig/mcp-gemini#readme",
+  "homepage": "https://github.com/siosig/mcp-gemini-server#readme",
   "bugs": {
-    "url": "https://github.com/siosig/mcp-gemini/issues"
+    "url": "https://github.com/siosig/mcp-gemini-server/issues"
   },
   "keywords": [
     "mcp",
