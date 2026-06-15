@@ -1,0 +1,35 @@
+# Node.js
+node_modules/
+dist/
+*.log
+coverage/
+.coverage
+*.tsbuildinfo
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment variables
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local-only / non-published (internal docs, tooling, deploy)
+/tmp/
+/refs/
+/configs/
+/specs/
+/report/
+/scripts/
+/ansible/
+/Makefile
+/CLAUDE.md
+/.claude/
+/.claude.json
+/.specify/
