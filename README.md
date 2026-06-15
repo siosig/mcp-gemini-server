@@ -4,6 +4,8 @@ A thin, **stdio** [Model Context Protocol (MCP)](https://modelcontextprotocol.io
 
 Built with TypeScript 6 / Node.js 24 (ESM) on top of the official [`@google/genai`](https://www.npmjs.com/package/@google/genai) SDK and [`@modelcontextprotocol/sdk`](https://www.npmjs.com/package/@modelcontextprotocol/sdk).
 
+> **This plugin works out of the box** — just issue a [`GEMINI_API_KEY`](https://aistudio.google.com/apikey) and you're ready to go.
+
 > 日本語版は [README.ja.md](README.ja.md) を参照してください。
 
 ## Features
