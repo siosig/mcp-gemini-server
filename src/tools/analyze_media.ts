@@ -2,7 +2,6 @@ import { z } from "zod";
 import { analyzeMedia, DEFAULT_VISION_MODEL, DEFAULT_VISION_THINKING_LEVEL } from "../services/gemini_client.js";
 import { isAbnormalEmpty, buildEmptyResponseWarnings, type ResponseDiagnostics } from "../utils/diagnostics.js";
 import type { ToolResult } from "./registry.js";
-import { getUploadStore } from "../server/upload.js";
 import {
   booleanLike,
   pinnedDefaultDescription,
@@ -13,7 +12,6 @@ import {
 
 export const analyzeMediaSchema = z.object({
   prompt: z.string().min(1),
-  uploaded_file_id: z.string().optional(),
   file_uri: z.string().optional(),
   file_path: z.string().optional(),
   image_url: z.string().optional(),
@@ -44,26 +42,8 @@ function toResult(result: { text: string; diagnostics?: ResponseDiagnostics }): 
 }
 
 export async function handleAnalyzeMedia(args: AnalyzeMediaArgs): Promise<string | ToolResult> {
-  // Resolve uploaded_file_id (highest priority)
-  if (args.uploaded_file_id) {
-    const store = getUploadStore();
-    if (!store) {
-      throw new Error("UploadStore is not initialized (HTTP transport required)");
-    }
-    const entry = store.get(args.uploaded_file_id);
-    if (!entry) {
-      throw new Error(`Uploaded file not found or expired: ${args.uploaded_file_id}`);
-    }
-    return toResult(await analyzeMedia(args.prompt, {
-      filePath: entry.storagePath,
-      model: args.model,
-      thinkingLevel: args.thinking_level,
-      serviceTier: resolveServiceTier(args.service_tier),
-    }));
-  }
-
   if (!args.file_uri && !args.file_path && !args.image_url && !args.image_base64) {
-    throw new Error("Either uploaded_file_id, file_uri, file_path, image_url, or image_base64 must be provided");
+    throw new Error("Either file_uri, file_path, image_url, or image_base64 must be provided");
   }
   return toResult(await analyzeMedia(args.prompt, {
     fileUri: args.file_uri,

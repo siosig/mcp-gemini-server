@@ -1,0 +1,10 @@
+{
+  "name": "mcp-gemini",
+  "description": "Gemini MCP server for Claude Code: chat, web search, role-based agents, multimodal analysis, image generation, code execution, and file management (7 tools), plus the gemini-team skill and the gemini-delegate subagent. Requires GEMINI_API_KEY (env or ~/.gemini-mcp.json).",
+  "version": "1.0.0",
+  "author": {
+    "name": "Daisuke ITO"
+  },
+  "homepage": "https://github.com/siosig/mcp-gemini",
+  "keywords": ["gemini", "mcp", "google-genai", "claude-code", "multi-agent"]
+}
