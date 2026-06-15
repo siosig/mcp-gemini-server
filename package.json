@@ -1,11 +1,11 @@
 {
-  "name": "gemini-mcp-server",
+  "name": "mcp-gemini-server",
   "version": "2.0.0",
   "description": "A thin, stdio Model Context Protocol (MCP) server exposing the Google Gemini API as composable primitives: chat, web search, role-based agents, multimodal analysis, image generation, code execution, and file management.",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "gemini-mcp-server": "dist/index.js"
+    "mcp-gemini-server": "dist/index.js"
   },
   "author": "Daisuke ITO <siosig@gmail.com>",
   "license": "MIT",

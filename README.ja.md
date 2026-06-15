@@ -1,4 +1,4 @@
-# gemini-mcp-server
+# mcp-gemini-server
 
 Google Gemini API を、合成可能な少数のプリミティブとして公開する薄い **stdio** [Model Context Protocol (MCP)](https://modelcontextprotocol.io) サーバーです。MCP クライアント（Claude Desktop、Cursor、Cline など MCP 対応クライアント）が stdio で直接起動して利用することを想定しています。
 
@@ -64,12 +64,12 @@ Claude Code 利用者向けの最短経路。1 回の install で、`gemini` MCP
   ```
   優先順位は **環境変数 > 設定ファイル**。パスは `GEMINI_MCP_CONFIG=/path/to/file.json` で上書き可。
 
-プラグインの MCP サーバーは `npx -y gemini-mcp-server@2` で起動します。`npx` の
+プラグインの MCP サーバーは `npx -y mcp-gemini-server@2` で起動します。`npx` の
 オンデマンド解決が不安定な環境（特に VS Code 拡張）では、bin をグローバル install して
 直接起動に切り替えてください:
 
 ```bash
-npm i -g gemini-mcp-server
+npm i -g mcp-gemini-server
 ```
 
 Gemini API キーは [Google AI Studio](https://aistudio.google.com/apikey) で取得できます。

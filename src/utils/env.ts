@@ -60,7 +60,7 @@ export function validateEnv(): Env {
   if (!result.success) {
     // The logger may not be initialized at this point, so use process.stderr.write.
     // Zod errors are not Error instances, so write out the already-formatted string as-is.
-    process.stderr.write(`[gemini-mcp-server] Environment validation failed:\n${result.error.toString()}\n`);
+    process.stderr.write(`[mcp-gemini-server] Environment validation failed:\n${result.error.toString()}\n`);
     process.exit(1);
   }
   return result.data;
