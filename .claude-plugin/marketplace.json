@@ -1,12 +1,12 @@
 {
-  "name": "mcp-gemini",
+  "name": "mcp-gemini-server",
   "owner": {
     "name": "Daisuke ITO"
   },
   "plugins": [
     {
-      "name": "mcp-gemini",
-      "source": "./plugins/mcp-gemini",
+      "name": "mcp-gemini-server",
+      "source": "./plugins/mcp-gemini-server",
       "description": "Gemini MCP server plugin for Claude Code: registers the 'gemini' MCP server (7 tools), the gemini-team skill, the gemini-delegate subagent, and a delegation-check hook. Requires GEMINI_API_KEY (env or ~/.gemini-mcp.json)."
     }
   ]
