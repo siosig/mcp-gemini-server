@@ -26,9 +26,6 @@ const EnvSchema = z
   .object({
     GEMINI_API_KEY: z.string().min(1, "GEMINI_API_KEY is required"),
 
-    MCP_TRANSPORT: z.enum(["stdio", "uds", "http"]).optional(),
-    MCP_SOCKET_PATH: z.string().optional(),
-
     // Model names are free strings (validated on the API side).
     GEMINI_MODEL: z.string().optional(),
     GEMINI_AGENT_MODEL: z.string().optional(),
