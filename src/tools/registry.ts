@@ -11,6 +11,7 @@ import { analyzeMediaSchema, handleAnalyzeMedia } from "./analyze_media.js";
 import { generateImageSchema, handleGenerateImage } from "./generate_image.js";
 import { executeCodeSchema, handleExecuteCode } from "./execute_code.js";
 import { manageFilesSchema, handleManageFiles } from "./manage_files.js";
+import { teamSchema, handleTeam } from "./team.js";
 
 /**
  * Local definition of the required MCP ToolAnnotations fields (the SDK type is not publicly exported).
@@ -162,6 +163,18 @@ export const allTools: ToolDefinition[] = [
       openWorldHint: true,
     },
     handler: handleExecuteCode,
+  }),
+  defineTool({
+    name: "gemini_team",
+    title: "Team Orchestration",
+    description:
+      'Run a multi-agent team task entirely server-side. Reads local files, runs specialist agents in parallel, and returns only the final result — Claude\'s context holds only file paths, not file content.\n\nREQUIRED: task (string), mode ("mul" | "it" | "mulit").\n\nModes:\n  mul   — Parallel specialist agents → Gemini aggregation → final answer\n  it    — Initial draft generation → critic/generator loop (max_iterations)\n  mulit — mul Phase1 + it Phase2 chained (highest quality, slowest)\n\nOptional: file_paths (local UTF-8 text files read server-side), roles, max_iterations (default 2), intermediate_results (default false), model, thinking_level, service_tier.',
+    schema: teamSchema,
+    annotations: {
+      readOnlyHint: true,
+      openWorldHint: true,
+    },
+    handler: handleTeam,
   }),
   defineTool({
     name: "gemini_manage_files",

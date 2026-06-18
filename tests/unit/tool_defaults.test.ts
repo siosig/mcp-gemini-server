@@ -16,6 +16,7 @@ import { customAgentSchema } from "../../src/tools/custom_agent.js";
 import { analyzeMediaSchema } from "../../src/tools/analyze_media.js";
 import { executeCodeSchema } from "../../src/tools/execute_code.js";
 import { manageFilesSchema } from "../../src/tools/manage_files.js";
+import { teamSchema } from "../../src/tools/team.js";
 
 describe("Tool default profile (spec 019)", () => {
   it("gemini_chat: model=gemini-3.5-flash, thinking_level=medium", () => {
@@ -57,6 +58,12 @@ describe("Tool default profile (spec 019)", () => {
     // strict schema: passing either one errors
     expect(manageFilesSchema.safeParse({ action: "list", model: "x" }).success).toBe(false);
     expect(manageFilesSchema.safeParse({ action: "list", thinking_level: "medium" }).success).toBe(false);
+  });
+
+  it("gemini_team: model=gemini-3.5-flash, thinking_level=high", () => {
+    const r = teamSchema.parse({ task: "x", mode: "mul" });
+    expect(r.model).toBe("gemini-3.5-flash");
+    expect(r.thinking_level).toBe("high");
   });
 });
 
