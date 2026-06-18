@@ -29,6 +29,7 @@ export const DEFAULT_SEARCH_MODEL = process.env.GEMINI_SEARCH_MODEL ?? "gemini-3
 export const DEFAULT_VISION_MODEL = process.env.GEMINI_VISION_MODEL ?? "gemini-3.1-flash-lite";
 export const DEFAULT_CODE_MODEL = process.env.GEMINI_CODE_MODEL ?? "gemini-3.1-flash-lite";
 export const DEFAULT_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL ?? "gemini-3.1-flash-image-preview";
+export const DEFAULT_TEAM_MODEL = process.env.GEMINI_TEAM_MODEL ?? DEFAULT_AGENT_MODEL;
 
 /** Valid values for thinking_level */
 export type ThinkingLevel = "minimal" | "low" | "medium" | "high";
@@ -63,6 +64,9 @@ export const DEFAULT_CODE_THINKING_LEVEL: ThinkingLevel = isThinkingLevel(rawCod
 
 const rawImageThinkingLevel = process.env.GEMINI_IMAGE_THINKING_LEVEL ?? "medium";
 export const DEFAULT_IMAGE_THINKING_LEVEL: ThinkingLevel = isThinkingLevel(rawImageThinkingLevel) ? rawImageThinkingLevel : "medium";
+
+const rawTeamThinkingLevel = process.env.GEMINI_TEAM_THINKING_LEVEL ?? "high";
+export const DEFAULT_TEAM_THINKING_LEVEL: ThinkingLevel = isThinkingLevel(rawTeamThinkingLevel) ? rawTeamThinkingLevel : "high";
 export const TIMEOUT_MS = parseInt(process.env.GEMINI_TIMEOUT ?? "360") * 1000;
 
 /** Timeout for the flex tier (15 minutes = 900,000ms) */
