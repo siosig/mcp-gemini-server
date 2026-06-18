@@ -75,7 +75,7 @@ fi
 PLUGIN_LIST=$(claude plugin list 2>/dev/null || true)
 if echo "${PLUGIN_LIST}" | grep -qF "❯ ${PLUGIN_NAME}@${MARKETPLACE_NAME}"; then
     echo "[2/2] Plugin '${PLUGIN_NAME}' already installed — updating..."
-    claude plugin update "${PLUGIN_NAME}" --scope "${SCOPE}"
+    claude plugin update "${PLUGIN_NAME}@${MARKETPLACE_NAME}" --scope "${SCOPE}"
     echo "      Done."
 else
     echo "[2/2] Installing plugin '${PLUGIN_NAME}'..."
