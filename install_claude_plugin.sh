@@ -1,87 +1,87 @@
 #!/usr/bin/env bash
-# Install or update the mcp-gemini-server Claude plugin from GitHub.
+# Install or update the mcp-gemini-server Claude plugin.
 #
 # Usage:
-#   ./install_claude_plugin.sh           # user scope (default)
-#   ./install_claude_plugin.sh --scope project
+#   ./install_claude_plugin.sh
+#
+# When run from inside the already-cloned repository (dist/ present), the local
+# tree is used directly and no network access is required.
+# Otherwise the repository is cloned from GitHub to INSTALL_DIR and built.
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MARKETPLACE_JSON="${SCRIPT_DIR}/.claude-plugin/marketplace.json"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd 2>/dev/null || pwd)"
+INSTALL_DIR="${MCP_GEMINI_INSTALL_DIR:-${HOME}/.local/share/mcp-gemini-server}"
+REPO_URL="https://github.com/siosig/mcp-gemini-server.git"
+MARKETPLACE_NAME="mcp-gemini-server"
+PLUGIN_NAME="mcp-gemini-server"
 
-# Parse --scope argument
-SCOPE="user"
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        --scope) SCOPE="$2"; shift 2 ;;
-        *) echo "[ERROR] Unknown argument: $1" >&2; exit 1 ;;
-    esac
-done
-
-# --- Parse marketplace.json ---
-if [[ ! -f "${MARKETPLACE_JSON}" ]]; then
-    echo "[ERROR] .claude-plugin/marketplace.json not found" >&2
+# ── 1. 必須コマンドの確認 ────────────────────────────────────────────────────
+_require() {
+  if ! command -v "$1" &>/dev/null; then
+    echo "ERROR: '$1' が見つかりません。インストールしてから再試行してください。" >&2
+    [[ -n "${2:-}" ]] && echo "       $2" >&2
     exit 1
-fi
-MARKETPLACE_NAME=$(python3 -c "import json,sys; d=json.load(open(sys.argv[1])); print(d['name'])" "${MARKETPLACE_JSON}")
-PLUGIN_NAME=$(python3 -c "import json,sys; d=json.load(open(sys.argv[1])); print(d['plugins'][0]['name'])" "${MARKETPLACE_JSON}")
+  fi
+  echo "✓ $1: $(command -v "$1")"
+}
 
-# --- Derive public HTTPS URL from git remote origin ---
-# Normalizes any GitHub URL (SSH, custom host alias, HTTPS) to https://github.com/<slug>
-ORIGIN=$(git -C "${SCRIPT_DIR}" remote get-url origin 2>/dev/null || true)
-if [[ -z "${ORIGIN}" ]]; then
-    echo "[ERROR] No git remote 'origin' found" >&2
-    exit 1
+_require git    "https://git-scm.com/downloads"
+_require node   "https://nodejs.org/"
+_require claude "https://claude.ai/code"
+
+# ── 2. GEMINI_API_KEY の案内 ──────────────────────────────────────────────────
+if [[ -z "${GEMINI_API_KEY:-}" && ! -f "${HOME}/.gemini-mcp.json" ]]; then
+  echo ""
+  echo "NOTE: GEMINI_API_KEY が未設定です。以下のいずれかで設定してください:"
+  echo "  export GEMINI_API_KEY=<your-key>"
+  echo "  echo '{\"GEMINI_API_KEY\":\"<your-key>\"}' > ~/.gemini-mcp.json"
+  echo ""
 fi
 
-# Extract GitHub slug from any URL form:
-#   git@github.com:user/repo.git
-#   git@github-personal:user/repo.git  (custom SSH host alias for github.com)
-#   https://github.com/user/repo.git
-if [[ "${ORIGIN}" =~ ^git@[^:]+:([^/]+/.+?)(.git)?$ ]]; then
-    REPO_URL="https://github.com/${BASH_REMATCH[1]}"
-elif [[ "${ORIGIN}" =~ ^https://github\.com/([^/]+/.+?)(.git)?$ ]]; then
-    REPO_URL="https://github.com/${BASH_REMATCH[1]}"
+# ── 3. ソース取得・ビルド ─────────────────────────────────────────────────────
+# ビルド済みのローカルリポジトリ内から実行されている場合はそのまま使う
+if [[ -f "${SCRIPT_DIR}/package.json" && -d "${SCRIPT_DIR}/dist" ]]; then
+  PLUGIN_DIR="${SCRIPT_DIR}"
+  echo "✓ ソース: ローカルリポジトリ (${PLUGIN_DIR})"
 else
-    REPO_URL="${ORIGIN}"
+  if [[ -d "${INSTALL_DIR}/.git" ]]; then
+    echo "→ リポジトリを更新します: ${INSTALL_DIR}"
+    git -C "${INSTALL_DIR}" pull --ff-only
+  else
+    echo "→ リポジトリをクローンします: ${REPO_URL}"
+    git clone "${REPO_URL}" "${INSTALL_DIR}"
+  fi
+  echo "→ 依存パッケージをインストールします"
+  (cd "${INSTALL_DIR}" && npm install)
+  echo "→ ビルドします"
+  (cd "${INSTALL_DIR}" && npm run build)
+  PLUGIN_DIR="${INSTALL_DIR}"
+  echo "✓ ビルド完了: ${PLUGIN_DIR}"
 fi
 
-echo "=== Claude Plugin Installer ==="
-echo "  Marketplace : ${MARKETPLACE_NAME}"
-echo "  Plugin      : ${PLUGIN_NAME}"
-echo "  URL         : ${REPO_URL}"
-echo "  Scope       : ${SCOPE}"
-echo ""
-
-# GIT_CONFIG_GLOBAL=/dev/null prevents local git insteadOf rewrites
-# (e.g. url."git@github.com:".insteadOf = https://github.com/) from
-# converting the HTTPS URL back to SSH inside claude's internal git clone.
-export GIT_CONFIG_GLOBAL=/dev/null
-
-# --- Marketplace: add or update ---
-MARKETPLACE_LIST=$(claude plugin marketplace list 2>/dev/null || true)
-if echo "${MARKETPLACE_LIST}" | grep -qF "❯ ${MARKETPLACE_NAME}"; then
-    echo "[1/2] Marketplace '${MARKETPLACE_NAME}' already registered — updating..."
-    claude plugin marketplace update "${MARKETPLACE_NAME}"
-    echo "      Done."
+# ── 4. マーケットプレイス登録（未登録なら追加）──────────────────────────────
+if claude plugin marketplace list 2>/dev/null | grep -q "^  ❯ ${MARKETPLACE_NAME}"; then
+  echo "✓ marketplace '${MARKETPLACE_NAME}': already registered"
 else
-    echo "[1/2] Adding marketplace '${MARKETPLACE_NAME}' from ${REPO_URL}..."
-    claude plugin marketplace add "${REPO_URL}" --scope "${SCOPE}"
-    echo "      Done."
+  echo "→ marketplace '${MARKETPLACE_NAME}' を登録します: ${PLUGIN_DIR}"
+  claude plugin marketplace add "${PLUGIN_DIR}"
+  echo "✓ marketplace '${MARKETPLACE_NAME}': registered"
 fi
 
-# --- Plugin: install or update ---
-PLUGIN_LIST=$(claude plugin list 2>/dev/null || true)
-if echo "${PLUGIN_LIST}" | grep -qF "❯ ${PLUGIN_NAME}@${MARKETPLACE_NAME}"; then
-    echo "[2/2] Plugin '${PLUGIN_NAME}' already installed — updating..."
-    claude plugin update "${PLUGIN_NAME}@${MARKETPLACE_NAME}" --scope "${SCOPE}"
-    echo "      Done."
+# ── 5. 既存インストールを削除 ────────────────────────────────────────────────
+if claude plugin list 2>/dev/null | grep -q "❯ ${PLUGIN_NAME}@"; then
+  echo "→ 既存の '${PLUGIN_NAME}' プラグインをアンインストールします"
+  claude plugin uninstall "${PLUGIN_NAME}" --yes
+  echo "✓ '${PLUGIN_NAME}': uninstalled"
 else
-    echo "[2/2] Installing plugin '${PLUGIN_NAME}'..."
-    claude plugin install "${PLUGIN_NAME}" --scope "${SCOPE}"
-    echo "      Done."
+  echo "✓ '${PLUGIN_NAME}': not installed (skip uninstall)"
 fi
+
+# ── 6. プラグインをインストール ──────────────────────────────────────────────
+echo "→ '${PLUGIN_NAME}@${MARKETPLACE_NAME}' をインストールします"
+claude plugin install "${PLUGIN_NAME}@${MARKETPLACE_NAME}"
+echo "✓ '${PLUGIN_NAME}@${MARKETPLACE_NAME}': installed"
 
 echo ""
-echo "✓ Complete. Restart Claude Code to apply changes."
+echo "インストール完了。Claude Code を再起動してプラグインを有効化してください。"
