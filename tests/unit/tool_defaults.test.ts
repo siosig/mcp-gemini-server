@@ -19,34 +19,34 @@ import { manageFilesSchema } from "../../src/tools/manage_files.js";
 import { teamSchema } from "../../src/tools/team.js";
 
 describe("Tool default profile (spec 019)", () => {
-  it("gemini_chat: model=gemini-3.5-flash, thinking_level=medium", () => {
+  it("gemini_chat: model=gemini-flash-latest, thinking_level=medium", () => {
     const r = geminiChatSchema.parse({ prompt: "x" });
-    expect(r.model).toBe("gemini-3.5-flash");
+    expect(r.model).toBe("gemini-flash-latest");
     expect(r.thinking_level).toBe("medium");
   });
 
-  it("gemini_search: model=gemini-3.1-flash-lite, thinking_level not present in schema", () => {
+  it("gemini_search: model=gemini-flash-lite-latest, thinking_level not present in schema", () => {
     const r = googleSearchSchema.parse({ query: "x" });
-    expect(r.model).toBe("gemini-3.1-flash-lite");
+    expect(r.model).toBe("gemini-flash-lite-latest");
     // strict schema: passing thinking_level errors
     expect(googleSearchSchema.safeParse({ query: "x", thinking_level: "medium" }).success).toBe(false);
   });
 
-  it("gemini_custom_agent: model=gemini-3.5-flash, thinking_level=high", () => {
+  it("gemini_custom_agent: model=gemini-flash-latest, thinking_level=high", () => {
     const r = customAgentSchema.parse({ task: "x", role: "developer" });
-    expect(r.model).toBe("gemini-3.5-flash");
+    expect(r.model).toBe("gemini-flash-latest");
     expect(r.thinking_level).toBe("high");
   });
 
-  it("gemini_analyze_media: model=gemini-3.1-flash-lite, thinking_level=medium", () => {
+  it("gemini_analyze_media: model=gemini-flash-lite-latest, thinking_level=medium", () => {
     const r = analyzeMediaSchema.parse({ prompt: "x", file_path: "/tmp/x.png" });
-    expect(r.model).toBe("gemini-3.1-flash-lite");
+    expect(r.model).toBe("gemini-flash-lite-latest");
     expect(r.thinking_level).toBe("medium");
   });
 
-  it("gemini_execute_code: model=gemini-3.1-flash-lite, thinking_level=low", () => {
+  it("gemini_execute_code: model=gemini-flash-lite-latest, thinking_level=low", () => {
     const r = executeCodeSchema.parse({ prompt: "x" });
-    expect(r.model).toBe("gemini-3.1-flash-lite");
+    expect(r.model).toBe("gemini-flash-lite-latest");
     expect(r.thinking_level).toBe("low");
   });
 
@@ -60,9 +60,9 @@ describe("Tool default profile (spec 019)", () => {
     expect(manageFilesSchema.safeParse({ action: "list", thinking_level: "medium" }).success).toBe(false);
   });
 
-  it("gemini_team: model=gemini-3.5-flash, thinking_level=high", () => {
+  it("gemini_team: model=gemini-flash-latest, thinking_level=high", () => {
     const r = teamSchema.parse({ task: "x", mode: "mul" });
-    expect(r.model).toBe("gemini-3.5-flash");
+    expect(r.model).toBe("gemini-flash-latest");
     expect(r.thinking_level).toBe("high");
   });
 });

@@ -64,9 +64,25 @@ Recommended roles to use as the `role` of `gemini_custom_agent`. **Free-form rol
 >
 > A custom definition with the same name as a built-in is an error. Define only roles that do not exist, using the dict form.
 
-## Model Selection and Parameters
+## Model Selection
 
-**For the model priority and the list of usable models, consult your MCP client's model configuration.**
+Choose the Gemini model based on **task complexity and required output quality**. Apply to all `gemini_custom_agent` calls (and `gemini_chat`) unless the mode overrides it.
+
+| Tier | Model | When to Use | Typical Roles |
+|------|-------|-------------|---------------|
+| **Pro** | `gemini-3.1-pro-preview` | Complex multi-step reasoning, architectural design, adversarial critique, highest-quality output needed | architect, critic (deep review), devil's advocate in hard problems |
+| **Flash** | `gemini-flash-latest` | Standard analysis, code generation, drafting, review; default for most tasks | analyst, developer, reviewer, researcher, critic (rubric scoring) |
+| **Flash Lite** | `gemini-flash-lite-latest` | Simple classification, routing, extraction, lightweight summarization, quick lookups | summarizer, simple Q&A, pre-processing steps |
+
+### Decision Criteria
+
+- **Use Flash Lite** when the output is a short label, score, or extract with no nuanced judgment needed (e.g., "classify this into category A/B/C", "extract JSON fields", "translate a list").
+- **Use Flash** when the task requires structured analysis, coherent prose, or working code — the vast majority of specialist tasks.
+- **Use Pro** when the task is a high-stakes design decision, deep multi-step reasoning chain, or adversarial critique where missing a subtle flaw matters more than cost.
+
+> **mulit mode override**: All agents in mulit mode are fixed to `model="gemini-3.1-pro-preview"` and `thinking_level="high"` regardless of the above. This is the quality-first mode for the hardest tasks. For all other modes (`crew`, `mul`, `it`), use the model appropriate to each role per the table above — do not default everything to Pro.
+
+## Model Parameters
 
 | Parameter | Overview | Details |
 |-----------|----------|---------|

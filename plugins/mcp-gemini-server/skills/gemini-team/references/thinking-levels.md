@@ -13,14 +13,14 @@
 
 **Premise**: the orchestrator (Claude) runs at Opus 4.7 effort=max (with deep integration and critical ability). The Gemini side handles exploration of specialist knowledge and generation of counterarguments — an asymmetric design.
 
-| Role | mul | it | mulit |
-|------|-----|-----|-------|
-| **Specialist** (architect, analyst, developer, reviewer) | `high` | — | Phase 1: `high` |
-| **Generator** (code/draft) | — | `medium` | Phase 1 speculative & Phase 2 loop: `medium` |
-| **Critic - Devil's Advocate** (the refuter in mul) | `high` | — | Phase 1 DA: `high` |
-| **Critic - Rubric scoring** (it / mulit Phase 2) | — | `high` | Phase 2 loop: `high` |
-| **Summarizer** | `low` | — | — |
-| **Researcher** (grounding needed) | `medium` | — | Phase 1: `medium` |
+| Role | mul | it | mulit | Recommended Model |
+|------|-----|-----|-------|-------------------|
+| **Specialist** (architect, analyst, developer, reviewer) | `high` | — | Phase 1: `high` | `gemini-flash-latest` (mul); fixed `gemini-3.1-pro-preview` (mulit) |
+| **Generator** (code/draft) | — | `medium` | Phase 1 speculative & Phase 2 loop: `medium` | `gemini-flash-latest` (it); fixed `gemini-3.1-pro-preview` (mulit) |
+| **Critic - Devil's Advocate** (the refuter in mul) | `high` | — | Phase 1 DA: `high` | `gemini-flash-latest` or `gemini-3.1-pro-preview` for hardest tasks; fixed Pro (mulit) |
+| **Critic - Rubric scoring** (it / mulit Phase 2) | — | `high` | Phase 2 loop: `high` | `gemini-flash-latest` (it); fixed `gemini-3.1-pro-preview` (mulit) |
+| **Summarizer** | `low` | — | — | `gemini-flash-lite-latest` |
+| **Researcher** (grounding needed) | `medium` | — | Phase 1: `medium` | `gemini-flash-latest` |
 
 ### Design Principles
 

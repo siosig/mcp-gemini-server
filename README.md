@@ -10,7 +10,7 @@ Built with TypeScript 6 / Node.js 24 (ESM) on top of the official [`@google/gena
 
 ## Features
 
-- **7 composable Gemini primitives** — chat, web search, role-based agents, multimodal analysis, image generation, code execution, and file management (see [Tools](#tools)).
+- **8 composable Gemini primitives** — chat, web search, role-based agents, multimodal analysis, image generation, code execution, server-side team orchestration, and file management (see [Tools](#tools)).
 - **Direct API, no CLI dependency** — talks to the Gemini API directly via `@google/genai`. There is no dependency on an external `gemini` CLI, so there is no shared auth/quota coupling and it runs cleanly inside containers.
 - **Unified `thinking_level`** — a single `minimal | low | medium | high` knob is mapped automatically to the correct field per model family (Gemini 3.x `thinkingLevel` vs. Gemini 2.5 `thinkingBudget`).
 - **Cost control with `service_tier`** — opt into `flex` (≈50% cheaper, latency-tolerant), `priority`, or `standard` per call or via an environment variable.
@@ -28,6 +28,7 @@ Built with TypeScript 6 / Node.js 24 (ESM) on top of the official [`@google/gena
 | `gemini_analyze_media` | Analyze images, PDF, video, or audio | `prompt` + one of `file_path` / `file_uri` / `image_url` / `image_base64` |
 | `gemini_generate_image` | Generate a PNG with Gemini Flash Image (Nano Banana 2); images carry Google SynthID watermarking | `prompt` (required) |
 | `gemini_execute_code` | Run Python in Gemini's sandbox (numpy/pandas/matplotlib) | `prompt` (required) |
+| `gemini_team` | Server-side multi-agent orchestration (mul / it / mulit modes); reads local files and returns only the final result — Claude's context holds only file paths | `task`, `mode` (required) |
 | `gemini_manage_files` | Manage the Gemini Files API (upload/list/status/delete) | `action` (required) |
 
 Most tools also accept optional `model`, `thinking_level`, and `service_tier` parameters.
@@ -119,7 +120,10 @@ Only `GEMINI_API_KEY` is required. All other settings have sensible defaults and
 |----------|-------------|---------|
 | `GEMINI_API_KEY` | Gemini API key (required) | — |
 | `GEMINI_MCP_CONFIG` | Path to a JSON config-file fallback for env vars | `~/.gemini-mcp.json` |
-| `GEMINI_MODEL` / `GEMINI_AGENT_MODEL` / `GEMINI_SEARCH_MODEL` / `GEMINI_VISION_MODEL` / `GEMINI_CODE_MODEL` / `GEMINI_IMAGE_MODEL` | Per-tool default model | tuned per tool |
+| `GEMINI_MODEL` / `GEMINI_AGENT_MODEL` | Default model for `gemini_chat` / `gemini_custom_agent` | `gemini-flash-latest` |
+| `GEMINI_TEAM_MODEL` | Default model for `gemini_team` | inherits `GEMINI_AGENT_MODEL` |
+| `GEMINI_SEARCH_MODEL` / `GEMINI_VISION_MODEL` / `GEMINI_CODE_MODEL` | Default model for search / media / code tools | `gemini-flash-lite-latest` |
+| `GEMINI_IMAGE_MODEL` | Default model for `gemini_generate_image` | `gemini-3.1-flash-image-preview` |
 | `GEMINI_*_THINKING_LEVEL` | Per-tool default thinking level | tuned per tool |
 | `GEMINI_TIMEOUT` | Request timeout (seconds) | `360` |
 | `GEMINI_SERVICE_TIER` | Default inference tier (`flex`/`priority`/`standard`) | API default |
@@ -163,9 +167,25 @@ pnpm test:unit      # unit tests only
 pnpm build          # type-check and compile
 ```
 
-## Bundled skill
+## Multi-agent orchestration
 
-[`plugins/mcp-gemini-server/skills/gemini-team`](plugins/mcp-gemini-server/skills/gemini-team) is an optional MCP-client skill that composes the server's `gemini_custom_agent` primitive into multi-agent workflows (parallel "coordinator", iterative "generate → critique", and a combined mode). It demonstrates the intended division of labor: the server stays thin, the client orchestrates.
+Two complementary approaches are available depending on who manages the workflow:
+
+### `gemini_team` tool (server-side)
+
+The `gemini_team` MCP tool runs the full multi-agent pipeline inside the server process. Claude passes a task, a mode, and optional local file paths; the server reads the files, fans out to Gemini specialist agents, aggregates the result, and returns only the final answer. Claude's context never holds file contents — only the file paths — keeping the main conversation lean.
+
+| Mode | Pattern |
+|------|---------|
+| `mul` | Parallel specialist agents → Gemini aggregation → final answer |
+| `it` | Initial draft → critic/generator loop (`max_iterations`, default 2) |
+| `mulit` | `mul` Phase 1 + `it` Phase 2 chained; highest quality, slowest |
+
+### `gemini-team` skill (client-side)
+
+[`plugins/mcp-gemini-server/skills/gemini-team`](plugins/mcp-gemini-server/skills/gemini-team) is an optional MCP-client skill that composes `gemini_custom_agent` calls on the client side. This gives Claude direct visibility into each agent's output at each step, enabling dynamic mid-loop decisions (e.g. early exit, role adjustment, injecting search results). It demonstrates the intended division of labor: the server stays thin, the client orchestrates.
+
+**When to use which**: choose `gemini_team` (tool) when the task input is large files or when you want a fire-and-forget call. Choose the `gemini-team` skill when you need mid-loop steering or want to interleave Claude's reasoning with each agent's output.
 
 ## Delegating to Gemini (gemini-delegate)
 

@@ -8,7 +8,7 @@ import { teamSchema } from "../../src/tools/team.js";
 describe("gemini_team schema (spec 024)", () => {
   it("mode=mul: defaults applied correctly", () => {
     const r = teamSchema.parse({ task: "analyze this", mode: "mul" });
-    expect(r.model).toBe("gemini-3.5-flash");
+    expect(r.model).toBe("gemini-flash-latest");
     expect(r.thinking_level).toBe("high");
     expect(r.roles).toEqual(["analyst", "architect", "developer", "reviewer", "critic"]);
     expect(r.max_iterations).toBe(2);
