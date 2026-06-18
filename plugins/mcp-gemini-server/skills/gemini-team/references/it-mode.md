@@ -32,21 +32,22 @@ Claude manages the feedback loop. It runs the "generating agent" → "critic age
 ## Code Example
 
 ```javascript
-// generating agent
+// it mode default model: gemini-flash-latest (generator and critic both use flash by default)
+// generator agent: medium thinking, flash for cost efficiency in the serial loop
 mcp__mcp-gemini__gemini_custom_agent({
   task: `<role>A developer who produces ${task}</role>
 <context>${the previous loop's critic feedback (empty in loop 1)}</context>
 <objective>${task body}</objective>`,
-  role: "developer", thinking_level: "medium"  // it is sequential, so the generator is fixed at medium
+  role: "developer", thinking_level: "medium"  // sequential → fixed medium; model: gemini-flash-latest
 })
 
-// critic agent
+// critic agent: high thinking, flash-latest (upgrade to gemini-3.1-pro-preview for deep adversarial critique)
 mcp__mcp-gemini__gemini_custom_agent({
   task: `<role>Rubric evaluator</role>
 <context>${generator output}</context>
 <objective>Score 1-5 against the rubric below and return improvement instructions as a bullet list</objective>
 <evaluation_rubric>Logic / Fact-checking / Coverage / Actionability (each 1-5)</evaluation_rubric>`,
-  role: "critic", thinking_level: "high"  // concentrate the budget on the critic
+  role: "critic", thinking_level: "high"  // concentrate the budget on the critic; model: gemini-flash-latest
 })
 ```
 

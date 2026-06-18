@@ -23,11 +23,11 @@ import { extractResponseDiagnostics, type ResponseDiagnostics } from "../utils/d
 
 // spec 019: Default models optimized per tool use case. Do not override without a clear reason.
 // gemini_generate_image uses Nano Banana 2 (Flash Image) — 1/40 the cost of Pro, suited for mainstream use.
-export const DEFAULT_MODEL = process.env.GEMINI_MODEL ?? "gemini-3.5-flash";
-export const DEFAULT_AGENT_MODEL = process.env.GEMINI_AGENT_MODEL ?? "gemini-3.5-flash";
-export const DEFAULT_SEARCH_MODEL = process.env.GEMINI_SEARCH_MODEL ?? "gemini-3.1-flash-lite";
-export const DEFAULT_VISION_MODEL = process.env.GEMINI_VISION_MODEL ?? "gemini-3.1-flash-lite";
-export const DEFAULT_CODE_MODEL = process.env.GEMINI_CODE_MODEL ?? "gemini-3.1-flash-lite";
+export const DEFAULT_MODEL = process.env.GEMINI_MODEL ?? "gemini-flash-latest";
+export const DEFAULT_AGENT_MODEL = process.env.GEMINI_AGENT_MODEL ?? "gemini-flash-latest";
+export const DEFAULT_SEARCH_MODEL = process.env.GEMINI_SEARCH_MODEL ?? "gemini-flash-lite-latest";
+export const DEFAULT_VISION_MODEL = process.env.GEMINI_VISION_MODEL ?? "gemini-flash-lite-latest";
+export const DEFAULT_CODE_MODEL = process.env.GEMINI_CODE_MODEL ?? "gemini-flash-lite-latest";
 export const DEFAULT_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL ?? "gemini-3.1-flash-image-preview";
 export const DEFAULT_TEAM_MODEL = process.env.GEMINI_TEAM_MODEL ?? DEFAULT_AGENT_MODEL;
 

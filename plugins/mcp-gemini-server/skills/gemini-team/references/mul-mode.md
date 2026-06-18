@@ -31,19 +31,20 @@ mcp__mcp-gemini__gemini_custom_agent({
 
 ```javascript
 // Call three or more specialist agents in parallel (e.g., architect + analyst + critic[devil's advocate])
+// mul mode default model: gemini-flash-latest (balanced; escalate to gemini-3.1-pro-preview for hard critique)
 // mul Specialists (architect/analyst/developer/reviewer) use thinking_level: "high"
 mcp__mcp-gemini__gemini_custom_agent({
   task: `<role>An architect who analyzes technical feasibility</role>
 <context>${context}</context>
 <objective>${split task}</objective>`,
-  role: "architect", thinking_level: "high"
+  role: "architect", thinking_level: "high"  // model default: gemini-flash-latest
 })
 
 mcp__mcp-gemini__gemini_custom_agent({
   task: `<role>An analyst who analyzes business requirements and user value</role>
 <context>${context}</context>
 <objective>${split task}</objective>`,
-  role: "analyst", thinking_level: "high"
+  role: "analyst", thinking_level: "high"  // model default: gemini-flash-latest
 })
 
 // + devil's advocate (see the template above)
