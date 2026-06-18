@@ -16,10 +16,10 @@ REPO_URL="https://github.com/siosig/mcp-gemini-server.git"
 MARKETPLACE_NAME="mcp-gemini-server"
 PLUGIN_NAME="mcp-gemini-server"
 
-# ── 1. 必須コマンドの確認 ────────────────────────────────────────────────────
+# ── 1. Check required commands ───────────────────────────────────────────────
 _require() {
   if ! command -v "$1" &>/dev/null; then
-    echo "ERROR: '$1' が見つかりません。インストールしてから再試行してください。" >&2
+    echo "ERROR: '$1' not found. Please install it and try again." >&2
     [[ -n "${2:-}" ]] && echo "       $2" >&2
     exit 1
   fi
@@ -30,58 +30,58 @@ _require git    "https://git-scm.com/downloads"
 _require node   "https://nodejs.org/"
 _require claude "https://claude.ai/code"
 
-# ── 2. GEMINI_API_KEY の案内 ──────────────────────────────────────────────────
+# ── 2. GEMINI_API_KEY notice ──────────────────────────────────────────────────
 if [[ -z "${GEMINI_API_KEY:-}" && ! -f "${HOME}/.gemini-mcp.json" ]]; then
   echo ""
-  echo "NOTE: GEMINI_API_KEY が未設定です。以下のいずれかで設定してください:"
+  echo "NOTE: GEMINI_API_KEY is not set. Configure it with one of:"
   echo "  export GEMINI_API_KEY=<your-key>"
   echo "  echo '{\"GEMINI_API_KEY\":\"<your-key>\"}' > ~/.gemini-mcp.json"
   echo ""
 fi
 
-# ── 3. ソース取得・ビルド ─────────────────────────────────────────────────────
-# ビルド済みのローカルリポジトリ内から実行されている場合はそのまま使う
+# ── 3. Acquire source and build ───────────────────────────────────────────────
+# If running inside an already-built local repository, use it directly
 if [[ -f "${SCRIPT_DIR}/package.json" && -d "${SCRIPT_DIR}/dist" ]]; then
   PLUGIN_DIR="${SCRIPT_DIR}"
-  echo "✓ ソース: ローカルリポジトリ (${PLUGIN_DIR})"
+  echo "✓ source: local repository (${PLUGIN_DIR})"
 else
   if [[ -d "${INSTALL_DIR}/.git" ]]; then
-    echo "→ リポジトリを更新します: ${INSTALL_DIR}"
+    echo "→ updating repository: ${INSTALL_DIR}"
     git -C "${INSTALL_DIR}" pull --ff-only
   else
-    echo "→ リポジトリをクローンします: ${REPO_URL}"
+    echo "→ cloning repository: ${REPO_URL}"
     git clone "${REPO_URL}" "${INSTALL_DIR}"
   fi
-  echo "→ 依存パッケージをインストールします"
+  echo "→ installing dependencies"
   (cd "${INSTALL_DIR}" && npm install)
-  echo "→ ビルドします"
+  echo "→ building"
   (cd "${INSTALL_DIR}" && npm run build)
   PLUGIN_DIR="${INSTALL_DIR}"
-  echo "✓ ビルド完了: ${PLUGIN_DIR}"
+  echo "✓ build complete: ${PLUGIN_DIR}"
 fi
 
-# ── 4. マーケットプレイス登録（未登録なら追加）──────────────────────────────
+# ── 4. Register marketplace (add if not registered) ──────────────────────────
 if claude plugin marketplace list 2>/dev/null | grep -q "^  ❯ ${MARKETPLACE_NAME}"; then
   echo "✓ marketplace '${MARKETPLACE_NAME}': already registered"
 else
-  echo "→ marketplace '${MARKETPLACE_NAME}' を登録します: ${PLUGIN_DIR}"
+  echo "→ registering marketplace '${MARKETPLACE_NAME}': ${PLUGIN_DIR}"
   claude plugin marketplace add "${PLUGIN_DIR}"
   echo "✓ marketplace '${MARKETPLACE_NAME}': registered"
 fi
 
-# ── 5. 既存インストールを削除 ────────────────────────────────────────────────
+# ── 5. Remove existing installation ──────────────────────────────────────────
 if claude plugin list 2>/dev/null | grep -q "❯ ${PLUGIN_NAME}@"; then
-  echo "→ 既存の '${PLUGIN_NAME}' プラグインをアンインストールします"
+  echo "→ uninstalling existing '${PLUGIN_NAME}' plugin"
   claude plugin uninstall "${PLUGIN_NAME}" --yes
   echo "✓ '${PLUGIN_NAME}': uninstalled"
 else
   echo "✓ '${PLUGIN_NAME}': not installed (skip uninstall)"
 fi
 
-# ── 6. プラグインをインストール ──────────────────────────────────────────────
-echo "→ '${PLUGIN_NAME}@${MARKETPLACE_NAME}' をインストールします"
+# ── 6. Install plugin ─────────────────────────────────────────────────────────
+echo "→ installing '${PLUGIN_NAME}@${MARKETPLACE_NAME}'"
 claude plugin install "${PLUGIN_NAME}@${MARKETPLACE_NAME}"
 echo "✓ '${PLUGIN_NAME}@${MARKETPLACE_NAME}': installed"
 
 echo ""
-echo "インストール完了。Claude Code を再起動してプラグインを有効化してください。"
+echo "Installation complete. Restart Claude Code to activate the plugin."
