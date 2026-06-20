@@ -66,7 +66,11 @@ Then provide your Gemini API key in **one** of these ways:
   Precedence is **environment variable > config file**. Override the path with
   `GEMINI_MCP_CONFIG=/path/to/file.json`.
 
-The plugin's MCP server launches via `npx -y mcp-gemini-server@2`. If `npx`
+The plugin's MCP server launches via `npx -y mcp-gemini-server@npm:mcp-gemini-server@2`.
+The `@npm:` alias forces `npx` to resolve from the registry; a bare
+`mcp-gemini-server@2` is misdetected as the local package when the client's working
+directory is the server's own repository (in a pnpm workspace the package's bin is
+not self-linked, so launch fails with `sh: mcp-gemini-server: not found`). If `npx`
 on-demand resolution is unreliable in your environment (notably the VS Code
 extension), install the binary globally and point the server at it directly:
 
