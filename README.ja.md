@@ -65,7 +65,11 @@ Claude Code 利用者向けの最短経路。1 回の install で、`gemini` MCP
   ```
   優先順位は **環境変数 > 設定ファイル**。パスは `GEMINI_MCP_CONFIG=/path/to/file.json` で上書き可。
 
-プラグインの MCP サーバーは `npx -y mcp-gemini-server@2` で起動します。`npx` の
+プラグインの MCP サーバーは `npx -y mcp-gemini-server@npm:mcp-gemini-server@2` で起動します。
+`@npm:` エイリアスで `npx` にレジストリ解決を強制しています。素の `mcp-gemini-server@2` だと、
+クライアントの作業ディレクトリがサーバー自身のリポジトリのとき npx がローカルパッケージと誤認し
+（pnpm ワークスペースでは自パッケージの bin が self-link されないため）、
+`sh: mcp-gemini-server: not found` で起動に失敗します。`npx` の
 オンデマンド解決が不安定な環境（特に VS Code 拡張）では、bin をグローバル install して
 直接起動に切り替えてください:
 
