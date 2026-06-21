@@ -1,6 +1,6 @@
 allowBuilds:
-  '@google/genai': set this to true or false
-  protobufjs: set this to true or false
+  '@google/genai': false
+  protobufjs: false
 minimumReleaseAgeExclude:
   - '@typescript/typescript-aix-ppc64@7.0.1-rc'
   - '@typescript/typescript-darwin-arm64@7.0.1-rc'

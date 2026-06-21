@@ -49,6 +49,13 @@ export const geminiChatSchema = z.object({
     .default(DEFAULT_THINKING_LEVEL)
     .describe(pinnedThinkingDescription("gemini_chat", DEFAULT_THINKING_LEVEL)),
   service_tier: serviceTierSchema,
+  file_path: z
+    .string()
+    .optional()
+    .describe(
+      "Optional: Absolute path to a file the server should read and include with the prompt. " +
+      "Supported: source code, Markdown, JSON, YAML, PDF, images, and other common formats.",
+    ),
 }).strict();
 
 export type GeminiChatArgs = z.infer<typeof geminiChatSchema>;
@@ -71,6 +78,7 @@ export async function handleGeminiChat(args: GeminiChatArgs): Promise<ToolResult
     thinkingLevel: args.thinking_level,
     toolName: "gemini_chat",
     serviceTier,
+    filePath: args.file_path,
   });
 
   const displayText = actualServiceTier

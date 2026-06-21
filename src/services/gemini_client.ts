@@ -221,6 +221,7 @@ export interface ChatOptions {
   thinkingLevel?: ThinkingLevel | null | undefined;
   toolName?: string | undefined;
   serviceTier?: ServiceTierValue | undefined;
+  filePath?: string | undefined;
 }
 
 export interface UsageMetadata {
@@ -243,12 +244,21 @@ export async function geminiChat(
   const baseConfig = await buildGenerateConfig(model, options);
   const genai = await getSharedGenAI();
 
+  // T006: Build multipart contents when a file path is provided.
+  type Contents = Parameters<typeof genai.models.generateContent>[0]["contents"];
+  let contents: Contents = prompt;
+  if (options.filePath) {
+    const sdk = await loadSdk();
+    const filePart = await buildFilePart(options.filePath, sdk);
+    contents = [{ parts: [filePart, sdk.createPartFromText(prompt)] }];
+  }
+
   const { result: response, durationMs } = await withTelemetry(
     { toolName: options.toolName ?? "gemini_chat", model, thinkingLevel: options.thinkingLevel ?? "", serviceTier: options.serviceTier },
     () => withFetchRetry(() => withAbortableTimeout(
       (signal) => genai.models.generateContent({
         model,
-        contents: prompt,
+        contents,
         config: { ...(baseConfig ?? {}), abortSignal: signal },
       }),
       timeout
@@ -318,6 +328,42 @@ export async function geminiSearch(
 
 // Data URI pattern
 const DATA_URI_PATTERN = /^data:(.+);base64,(.+)$/;
+
+// T002: File extensions treated as plain text (sent via createPartFromText).
+const TEXT_EXTENSIONS = new Set([
+  ".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs",
+  ".py", ".rb", ".go", ".rs", ".java",
+  ".c", ".cpp", ".cc", ".cxx", ".h", ".hpp",
+  ".cs", ".php", ".swift", ".kt", ".kts", ".scala",
+  ".md", ".mdx", ".txt",
+  ".json", ".yaml", ".yml", ".toml", ".xml",
+  ".html", ".htm", ".css", ".scss", ".sass", ".less",
+  ".sh", ".bash", ".zsh", ".sql", ".graphql", ".proto",
+  ".tf", ".hcl", ".ini", ".cfg", ".conf",
+  ".gitignore", ".env", ".svelte", ".vue", ".r", ".m",
+]);
+
+// T003: MIME types for binary file extensions (sent via createPartFromBase64).
+const BINARY_MIME_MAP: Record<string, string> = {
+  ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png",
+  ".gif": "image/gif", ".webp": "image/webp", ".heic": "image/heic",
+  ".heif": "image/heif", ".pdf": "application/pdf",
+  ".mp4": "video/mp4", ".mpeg": "video/mpeg", ".mov": "video/quicktime",
+  ".webm": "video/webm", ".mp3": "audio/mpeg", ".wav": "audio/wav",
+  ".ogg": "audio/ogg", ".flac": "audio/flac",
+};
+
+// T004: Build a Gemini Part from a local file path.
+// Text files are sent as text parts; binary files as inline base64 data.
+async function buildFilePart(filePath: string, sdk: typeof import("@google/genai")): Promise<Part> {
+  const buf = await fs.readFile(filePath);
+  const ext = path.extname(filePath).toLowerCase();
+  if (TEXT_EXTENSIONS.has(ext)) {
+    return sdk.createPartFromText(buf.toString("utf-8"));
+  }
+  const mimeType = BINARY_MIME_MAP[ext] ?? "application/octet-stream";
+  return sdk.createPartFromBase64(buf.toString("base64"), mimeType);
+}
 
 /**
  * Image and media analysis.
