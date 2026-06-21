@@ -33,6 +33,13 @@ export const customAgentSchema = z.object({
     .default(DEFAULT_AGENT_THINKING_LEVEL)
     .describe(pinnedThinkingDescription("gemini_custom_agent", DEFAULT_AGENT_THINKING_LEVEL)),
   service_tier: serviceTierSchema,
+  file_path: z
+    .string()
+    .optional()
+    .describe(
+      "Optional: Absolute path to a file the server should read and include with the task. " +
+      "Supported: source code, Markdown, JSON, YAML, PDF, images, and other common formats.",
+    ),
 }).strict();
 
 export type CustomAgentArgs = z.infer<typeof customAgentSchema>;
@@ -51,6 +58,7 @@ export async function handleCustomAgent(args: CustomAgentArgs): Promise<string> 
     thinkingLevel: args.thinking_level,
     toolName: "gemini_custom_agent",
     serviceTier: resolveServiceTier(args.service_tier),
+    filePath: args.file_path,
   });
   return text;
 }
