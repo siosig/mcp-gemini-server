@@ -80,42 +80,6 @@ npm i -g mcp-gemini-server
 
 Get a Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey).
 
-## Manual installation (any MCP client)
-
-```bash
-# 1. Clone
-git clone https://github.com/siosig/mcp-gemini-server.git
-cd mcp-gemini-server
-
-# 2. Install dependencies
-pnpm install   # or: npm install
-
-# 3. Build (compiles TypeScript to dist/)
-pnpm build     # or: npm run build
-```
-
-### Register with your MCP client
-
-This server speaks **stdio only** — the MCP client spawns the process and
-communicates over stdin/stdout. Add the standard `mcpServers` block used by
-Claude Desktop, Cursor, and most MCP clients:
-
-```json
-{
-  "mcpServers": {
-    "gemini": {
-      "command": "node",
-      "args": ["/absolute/path/to/mcp-gemini-server/dist/index.js"],
-      "env": {
-        "GEMINI_API_KEY": "your-api-key"
-      }
-    }
-  }
-}
-```
-
-Get a Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey).
-
 ## Configuration
 
 Only `GEMINI_API_KEY` is required. All other settings have sensible defaults and are documented in [`.env.example`](.env.example).

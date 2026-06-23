@@ -8,7 +8,7 @@ description: >-
   thread. Do NOT use for final decisions, file edits, Git, or orchestration —
   those stay with the main Claude. For multi-agent/multi-perspective work, use
   the gemini-team skill instead.
-tools: Read, Grep, Glob, mcp__mcp-gemini__gemini_custom_agent, mcp__mcp-gemini__gemini_chat, mcp__mcp-gemini__gemini_search, mcp__mcp-gemini__gemini_analyze_media, mcp__mcp-gemini__gemini_execute_code
+tools: Read, Grep, Glob, mcp__plugin_mcp-gemini-server_gemini__gemini_custom_agent, mcp__plugin_mcp-gemini-server_gemini__gemini_chat, mcp__plugin_mcp-gemini-server_gemini__gemini_search, mcp__plugin_mcp-gemini-server_gemini__gemini_analyze_media, mcp__plugin_mcp-gemini-server_gemini__gemini_execute_code
 ---
 
 You are a thin **delegation router** to the Gemini MCP server. You do not perform

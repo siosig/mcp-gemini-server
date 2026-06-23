@@ -79,41 +79,6 @@ npm i -g mcp-gemini-server
 
 Gemini API キーは [Google AI Studio](https://aistudio.google.com/apikey) で取得できます。
 
-## 手動インストール（任意の MCP クライアント）
-
-```bash
-# 1. クローン
-git clone https://github.com/siosig/mcp-gemini-server.git
-cd mcp-gemini-server
-
-# 2. 依存関係のインストール
-pnpm install   # または: npm install
-
-# 3. ビルド（TypeScript を dist/ にコンパイル）
-pnpm build     # または: npm run build
-```
-
-### MCP クライアントへの登録
-
-本サーバーは **stdio 専用** です（MCP クライアントがプロセスを起動し stdin/stdout で通信）。
-以下は Claude Desktop・Cursor をはじめ多くの MCP クライアントが用いる標準的な `mcpServers` ブロックです:
-
-```json
-{
-  "mcpServers": {
-    "gemini": {
-      "command": "node",
-      "args": ["/absolute/path/to/mcp-gemini-server/dist/index.js"],
-      "env": {
-        "GEMINI_API_KEY": "your-api-key"
-      }
-    }
-  }
-}
-```
-
-Gemini API キーは [Google AI Studio](https://aistudio.google.com/apikey) で取得できます。
-
 ## 設定
 
 必須は `GEMINI_API_KEY` のみです。その他は妥当なデフォルトを持ち、[`.env.example`](.env.example) に文書化しています。
