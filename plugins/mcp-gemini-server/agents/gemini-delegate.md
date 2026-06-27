@@ -1,6 +1,9 @@
 ---
 name: gemini-delegate
 description: >-
+  Default delegation target for read-only comprehension, summarization,
+  investigation, and review of existing local code/docs whose context fits one
+  prompt — delegate these by default and consume only the distilled conclusion.
   Delegate a single, self-contained task to Gemini and return only a distilled
   result. Use for independent research, reviews, designs, summaries, media
   analysis, or code execution where the full context can be packaged up front.
@@ -56,6 +59,10 @@ that reaches the caller is your final message, so keep it small.
 - Built-in Gemini agent roles have Google Search grounding disabled. When you need
   first-party facts, fetch them with `gemini_search` and pass them into the
   delegated context — do not rely on the role to search on its own.
+- **Do NOT assert latest library/SDK/API specifications.** Gemini's grounding is
+  disabled and it can misstate current APIs. When you are not certain a spec or
+  signature is current, do not present it as fact — return it explicitly flagged as
+  **"needs context7 verification"** so the main Claude verifies it.
 
 # When delegation is not appropriate
 
