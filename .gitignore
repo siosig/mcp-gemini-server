@@ -33,5 +33,8 @@ Thumbs.db
 /.claude.json
 /.specify/
 
+# Claude Code plugin cache (local install artifact, not part of source)
+.claude-plugin/
+
 # secretlint local-only denylist (company/personal terms — never committed)
 .secretlintrc.local.json
