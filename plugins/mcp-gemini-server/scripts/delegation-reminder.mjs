@@ -2,14 +2,16 @@
 /**
  * UserPromptSubmit hook for the mcp-gemini-server plugin.
  *
- * Emits a single-line <delegation-check> reminder to stdout, which Claude Code
- * injects into context. Nudges Claude to consider delegating a self-contained
- * task to the gemini-delegate subagent (or the gemini-team skill) before
- * answering, keeping the main thread small.
+ * Emits a <delegation-policy> block to stdout, which Claude Code injects into
+ * context. This is a DEFAULT-ON delegation rule: read-only comprehension /
+ * summarization / investigation / review of existing local code/docs whose
+ * context fits one prompt is delegated to the gemini-delegate subagent by
+ * default, with precision guardrails (exclusions) carried inline so the rule
+ * never erodes correctness.
  *
  * No input, no side effects, exit 0.
  */
 
 process.stdout.write(
-  "<delegation-check>If this turn contains an independent, context-packageable task (research/review/design/summarize/media analysis/code execution), consider delegating it to gemini-delegate before answering. Final decisions, file edits/Git, and orchestration stay with Claude. Skip for trivial replies.</delegation-check>",
+  "<delegation-policy>\nDEFAULT-ON: For self-contained, read-only work over existing local code/docs — comprehension, summarization, investigation, review — whose full context fits in one prompt, delegate to the gemini-delegate subagent by default and consume only the distilled conclusion. Do NOT delegate (exclusions): (1) final decisions, file edits, Git, and orchestration stay with the main Claude; (2) latest library/SDK/API specs — do not let Gemini adjudicate them; verify via context7/Claude; (3) tasks needing fine-grained sequential control (debugging isolation, staged refactors). Always finally verify delegated results before using them.\n</delegation-policy>",
 );
