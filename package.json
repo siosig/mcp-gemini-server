@@ -35,6 +35,7 @@
   ],
   "scripts": {
     "build": "tsc",
+    "build:plugin": "bun build src/index.ts --target=node --format=esm --outfile=plugins/mcp-gemini-server/dist/index.js",
     "prepublishOnly": "tsc",
     "start": "node --max-old-space-size=256 --optimize-for-size --max-semi-space-size=8 --disable-proto=delete --disallow-code-generation-from-strings dist/index.js",
     "dev": "tsx watch src/index.ts",

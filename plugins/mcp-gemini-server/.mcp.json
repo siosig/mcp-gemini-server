@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "gemini": {
-      "command": "npx",
-      "args": ["-y", "mcp-gemini-server@npm:mcp-gemini-server@2"],
+      "command": "bun",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/dist/index.js"],
       "env": {
         "GEMINI_API_KEY": "${GEMINI_API_KEY}"
       }

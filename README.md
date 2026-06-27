@@ -35,8 +35,9 @@ Most tools also accept optional `model`, `thinking_level`, and `service_tier` pa
 
 ## Requirements
 
+- [`bun`](https://bun.sh) on your PATH — runs the plugin's MCP server (`npm i -g bun`)
 - Node.js >= 24.14.0
-- [pnpm](https://pnpm.io) 10+ (or npm)
+- [pnpm](https://pnpm.io) 10+ (or npm) — only needed to build from source
 
 ## Install as a Claude Code plugin (recommended)
 
@@ -50,6 +51,12 @@ subagent, and a delegation-check hook.
 
 # 2. Install the plugin
 /plugin install mcp-gemini-server@mcp-gemini-server
+```
+
+Or run the non-interactive installer (does the same two steps via the CLI):
+
+```bash
+./install_claude_plugin.sh
 ```
 
 Then provide your Gemini API key in **one** of these ways:
@@ -66,17 +73,14 @@ Then provide your Gemini API key in **one** of these ways:
   Precedence is **environment variable > config file**. Override the path with
   `GEMINI_MCP_CONFIG=/path/to/file.json`.
 
-The plugin's MCP server launches via `npx -y mcp-gemini-server@npm:mcp-gemini-server@2`.
-The `@npm:` alias forces `npx` to resolve from the registry; a bare
-`mcp-gemini-server@2` is misdetected as the local package when the client's working
-directory is the server's own repository (in a pnpm workspace the package's bin is
-not self-linked, so launch fails with `sh: mcp-gemini-server: not found`). If `npx`
-on-demand resolution is unreliable in your environment (notably the VS Code
-extension), install the binary globally and point the server at it directly:
+The plugin's MCP server launches via `bun ${CLAUDE_PLUGIN_ROOT}/dist/index.js` — a
+single, self-contained bundle committed inside the plugin. No `npx`, no registry
+fetch, and no `node_modules` to resolve at launch: it runs in **one ~75 MB process**.
+(The previous `npx` launch forked a second Node process and idled at ~219 MB.)
 
-```bash
-npm i -g mcp-gemini-server
-```
+**Requirement: [`bun`](https://bun.sh) must be on your PATH** (`npm i -g bun`, or see
+bun.sh). The bundle is Node-compatible, so if you prefer Node you can change the
+`command` in the plugin's `.mcp.json` from `bun` to `node`.
 
 Get a Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey).
 
@@ -133,6 +137,17 @@ pnpm dev            # watch mode (tsx)
 pnpm test           # run all tests (vitest)
 pnpm test:unit      # unit tests only
 pnpm build          # type-check and compile
+pnpm build:plugin   # bundle the self-contained plugin server (bun)
+```
+
+**Maintainers:** the plugin ships a committed, self-contained bundle at
+`plugins/mcp-gemini-server/dist/index.js`. After changing `src/`, regenerate and
+commit it so the GitHub-marketplace install picks up the change:
+
+```bash
+pnpm build:plugin
+git add plugins/mcp-gemini-server/dist/index.js
+git commit && git push
 ```
 
 ## Multi-agent orchestration
