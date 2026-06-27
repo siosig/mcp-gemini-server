@@ -1,0 +1,44 @@
+# Standalone binary crate. The empty [workspace] table stops Cargo from
+# walking upward and treating this as a member of any parent workspace.
+[workspace]
+
+[package]
+name = "mcp-gemini-server"
+version = "2.2.0"
+edition = "2021"
+rust-version = "1.85"
+description = "MCP stdio server bridging Claude to the Gemini API"
+license = "MIT"
+
+[[bin]]
+name = "mcp-gemini-server"
+path = "src/main.rs"
+
+[dependencies]
+rmcp = { version = "0.9", features = ["server", "transport-io", "macros", "schemars"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "io-std", "fs", "time", "signal"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "multipart", "rustls-tls", "charset", "http2"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+schemars = "1"
+thiserror = "2"
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["json", "env-filter"] }
+base64 = "0.22"
+mime_guess = "2"
+dirs = "6"
+uuid = { version = "1", features = ["v4"] }
+futures = "0.3"
+
+[dev-dependencies]
+tempfile = "3"
+
+[profile.release]
+strip = true
+lto = "thin"
+
+# Enforce a warning-free build for THIS crate only (deps are unaffected, avoiding
+# the global-rustflags footgun). `cargo clippy -- -D warnings` is run in CI (T045).
+[lints.rust]
+warnings = "deny"

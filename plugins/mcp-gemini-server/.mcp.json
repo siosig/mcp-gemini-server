@@ -1,8 +1,7 @@
 {
   "mcpServers": {
     "gemini": {
-      "command": "bun",
-      "args": ["${CLAUDE_PLUGIN_ROOT}/dist/index.js"],
+      "command": "${HOME}/.local/share/mcp-gemini-server/mcp-gemini-server",
       "env": {
         "GEMINI_API_KEY": "${GEMINI_API_KEY}"
       }

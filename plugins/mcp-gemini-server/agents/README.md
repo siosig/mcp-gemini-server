@@ -19,5 +19,7 @@ mkdir -p ~/.claude/agents && cp agents/gemini-delegate.md ~/.claude/agents/
 For multi-agent workflows (parallel coordinator, iterative generate→critique),
 see the bundled [`skills/gemini-team`](../skills/gemini-team) skill instead.
 
-See the README "Delegating to Gemini" section ([en](../README.md) / [ja](../README.ja.md))
-for the optional `UserPromptSubmit` hook and the delegation policy.
+The delegation policy is installed as an always-loaded rule at
+`~/.claude/rules/mcp-gemini-server.md` by `install_claude_plugin.sh` (no
+`UserPromptSubmit` hook). See the README delegation section
+([en](../../../README.md) / [ja](../../../README.ja.md)) for details.

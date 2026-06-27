@@ -2,7 +2,7 @@
 
 A thin, **stdio** [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that exposes the Google Gemini API as a small set of composable primitives. It is designed to be launched directly by an MCP client (Claude Desktop, Cursor, Cline, and any other MCP-compatible client) over stdio.
 
-Built with TypeScript 6 / Node.js 24 (ESM) on top of the official [`@google/genai`](https://www.npmjs.com/package/@google/genai) SDK and [`@modelcontextprotocol/sdk`](https://www.npmjs.com/package/@modelcontextprotocol/sdk).
+Built in **Rust** (stable) on top of [`rmcp`](https://crates.io/crates/rmcp) (the official Rust MCP SDK) and [`reqwest`](https://crates.io/crates/reqwest), calling the Gemini Generative Language REST API directly. It ships as a single self-contained native binary — no runtime dependency on Node.js, Python, or an external CLI.
 
 > **This plugin works out of the box** — just issue a [`GEMINI_API_KEY`](https://aistudio.google.com/apikey) and you're ready to go.
 
@@ -11,12 +11,12 @@ Built with TypeScript 6 / Node.js 24 (ESM) on top of the official [`@google/gena
 ## Features
 
 - **8 composable Gemini primitives** — chat, web search, role-based agents, multimodal analysis, image generation, code execution, server-side team orchestration, and file management (see [Tools](#tools)).
-- **Direct API, no CLI dependency** — talks to the Gemini API directly via `@google/genai`. There is no dependency on an external `gemini` CLI, so there is no shared auth/quota coupling and it runs cleanly inside containers.
+- **Direct API, no CLI dependency** — talks to the Gemini REST API directly via `reqwest`. There is no dependency on an external `gemini` CLI, so there is no shared auth/quota coupling and it runs cleanly inside containers.
 - **Unified `thinking_level`** — a single `minimal | low | medium | high` knob is mapped automatically to the correct field per model family (Gemini 3.x `thinkingLevel` vs. Gemini 2.5 `thinkingBudget`).
 - **Cost control with `service_tier`** — opt into `flex` (≈50% cheaper, latency-tolerant), `priority`, or `standard` per call or via an environment variable.
 - **Per-tool optimized defaults** — each tool ships with a sensible default model and thinking level tuned for its use case; override only when you need to.
 - **Thin by design** — the server provides primitives only. Multi-agent orchestration is left to the client side (see the bundled [`plugins/mcp-gemini-server/skills/gemini-team`](plugins/mcp-gemini-server/skills/gemini-team) skill), keeping the server aligned with MCP's separation of concerns.
-- **Operationally clean** — strict Zod schemas, structured tool output (`structuredContent`), retry/timeout handling, stderr-only logging, and hardened Node runtime flags. No external network or monitoring stack is assumed.
+- **Operationally clean** — strict `serde` + `schemars` input schemas, structured tool output (`structuredContent`), retry/timeout handling, and stderr-only structured logging (stdout is reserved for the JSON-RPC stream). No external network or monitoring stack is assumed.
 
 ## Tools
 
@@ -35,15 +35,16 @@ Most tools also accept optional `model`, `thinking_level`, and `service_tier` pa
 
 ## Requirements
 
-- [`bun`](https://bun.sh) on your PATH — runs the plugin's MCP server (`npm i -g bun`)
-- Node.js >= 24.14.0
-- [pnpm](https://pnpm.io) 10+ (or npm) — only needed to build from source
+- A [`GEMINI_API_KEY`](https://aistudio.google.com/apikey) (in the environment or `~/.gemini-mcp.json`)
+- The native binary — obtained automatically by `install_claude_plugin.sh` from a GitHub Release, or built locally
+- [Rust](https://rustup.rs) (stable, ≥ 1.85) — only needed to build from source when no pre-built binary is available
 
 ## Install as a Claude Code plugin (recommended)
 
 The fastest path for Claude Code users. One install registers everything at once:
-the `gemini` MCP server (all 7 tools), the `gemini-team` skill, the `gemini-delegate`
-subagent, and a delegation-check hook.
+the `gemini` MCP server (all 8 tools), the `gemini-team` skill, and the `gemini-delegate`
+subagent. The installer also writes the delegation policy to `~/.claude/rules/mcp-gemini-server.md`
+(an always-loaded rule — no per-prompt hook).
 
 ```text
 # 1. Add this repository as a plugin marketplace
@@ -73,14 +74,11 @@ Then provide your Gemini API key in **one** of these ways:
   Precedence is **environment variable > config file**. Override the path with
   `GEMINI_MCP_CONFIG=/path/to/file.json`.
 
-The plugin's MCP server launches via `bun ${CLAUDE_PLUGIN_ROOT}/dist/index.js` — a
-single, self-contained bundle committed inside the plugin. No `npx`, no registry
-fetch, and no `node_modules` to resolve at launch: it runs in **one ~75 MB process**.
-(The previous `npx` launch forked a second Node process and idled at ~219 MB.)
-
-**Requirement: [`bun`](https://bun.sh) must be on your PATH** (`npm i -g bun`, or see
-bun.sh). The bundle is Node-compatible, so if you prefer Node you can change the
-`command` in the plugin's `.mcp.json` from `bun` to `node`.
+The plugin's MCP server is a native Rust binary. `install_claude_plugin.sh` installs
+it to `~/.local/share/mcp-gemini-server/mcp-gemini-server` (downloaded from a GitHub
+Release for your OS/arch, or built locally with `cargo build --release` as a
+fallback), and the plugin's `.mcp.json` launches it directly. No Node.js, no `npx`,
+and no `node_modules` to resolve at launch — it runs as a single static process.
 
 Get a Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey).
 
@@ -110,45 +108,37 @@ The server is a thin, layered wrapper. Each layer has a single responsibility:
 MCP client (Claude Desktop / Cursor / ...)
         │  JSON-RPC over stdio
         ▼
-src/index.ts        ── entrypoint: validate env, wire transport
-src/server.ts       ── register every tool from the registry in a loop
-src/tools/*.ts      ── thin handlers: Zod input schema + a small handler
-src/tools/registry.ts ── single source of truth for the tool list
+src/main.rs         ── entrypoint: load config, validate env, serve stdio
+src/server.rs       ── register every tool via the rmcp #[tool_router] macro
+src/tools/*.rs      ── thin handlers: serde/schemars input schema + a small handler
         │
         ▼
-src/services/gemini_client.ts ── the only place that talks to @google/genai
-        │  (singleton SDK client, retry, timeout, diagnostics)
+src/services/gemini_client.rs ── the only place that talks to the Gemini REST API
+        │  (reqwest client, retry, timeout, diagnostics)
         ▼
 Google Gemini API
 ```
 
-Supporting modules under `src/utils/` handle cross-cutting concerns: environment validation (`env.ts`), stderr logging (`logger.ts`), retry/timeout wrappers (`telemetry.ts`), empty-response diagnostics (`diagnostics.ts`), and error formatting (`errors.ts`).
+Supporting modules under `src/utils/` handle cross-cutting concerns: environment validation (`env.rs`), stderr logging (`logger.rs`), retry/timeout wrappers (`telemetry.rs`), empty-response diagnostics (`diagnostics.rs`), and error formatting (`errors.rs`). The Gemini wire types live in `src/services/types.rs`.
 
 Design principles:
 
-- **Single integration point.** All Gemini SDK calls go through `gemini_client.ts`, so model/version differences (e.g. Gemini 3.x vs. 2.5 thinking config) are absorbed in one place.
+- **Single integration point.** All Gemini API calls go through `gemini_client.rs`, so model/version differences (e.g. Gemini 3.x vs. 2.5 thinking config) are absorbed in one place.
 - **Primitives, not orchestration.** Tools are stateless, composable building blocks. Higher-level workflows (e.g. multi-agent debate/refinement) are composed on the client side — see the bundled [`plugins/mcp-gemini-server/skills/gemini-team`](plugins/mcp-gemini-server/skills/gemini-team) skill, which orchestrates `gemini_custom_agent` calls without any server-side strategy code.
 - **stdio-first.** `stdout` is reserved for JSON-RPC; all logging goes to `stderr`.
 
 ## Development
 
 ```bash
-pnpm dev            # watch mode (tsx)
-pnpm test           # run all tests (vitest)
-pnpm test:unit      # unit tests only
-pnpm build          # type-check and compile
-pnpm build:plugin   # bundle the self-contained plugin server (bun)
+cargo build --release   # compile the optimized binary (target/release/mcp-gemini-server)
+cargo test              # run all unit tests
+cargo clippy --all-targets --all-features --locked -- -D warnings   # lint (warning-free)
 ```
 
-**Maintainers:** the plugin ships a committed, self-contained bundle at
-`plugins/mcp-gemini-server/dist/index.js`. After changing `src/`, regenerate and
-commit it so the GitHub-marketplace install picks up the change:
-
-```bash
-pnpm build:plugin
-git add plugins/mcp-gemini-server/dist/index.js
-git commit && git push
-```
+**Releases:** push an annotated `vX.Y.Z` tag. The [`release.yml`](.github/workflows/release.yml)
+workflow cross-compiles the binary for Linux (x86_64 / aarch64), macOS (aarch64), and
+Windows (x86_64) and publishes the archives as GitHub Release assets, which
+`install_claude_plugin.sh` downloads.
 
 ## Multi-agent orchestration
 
@@ -187,19 +177,13 @@ mkdir -p .claude/agents && cp plugins/mcp-gemini-server/agents/gemini-delegate.m
 mkdir -p ~/.claude/agents && cp plugins/mcp-gemini-server/agents/gemini-delegate.md ~/.claude/agents/
 ```
 
-### Optional: a delegation-check hook
+### Delegation rules (no hook)
 
-The Claude Code plugin registers this hook automatically. To add it manually,
-put a `UserPromptSubmit` hook in your `settings.json`. Its stdout is injected into context.
-
-> ⚠️ The `command` **must be a single-line JSON string**. A literal newline / multi-line command makes the whole `settings.json` "Invalid or malformed JSON" and disables *all* settings. After editing, validate with `python3 -c "import json;json.load(open('<path>/settings.json'))"`.
-
-```json
-{
-  "type": "command",
-  "command": "printf '%s' '<delegation-check>If this turn contains an independent, context-packageable task (research/review/design/summarize/media analysis/code execution), consider delegating it to gemini-delegate before answering. Final decisions, file edits/Git, and orchestration stay with Claude. Skip for trivial replies.</delegation-check>'"
-}
-```
+`install_claude_plugin.sh` writes the delegation policy to
+`~/.claude/rules/mcp-gemini-server.md` as an always-loaded rule, and `-d` removes it.
+This intentionally replaces the former `UserPromptSubmit` hook so that nothing is
+injected into Claude's prompt input on every turn. If you install the agent manually
+(without the script), create that rules file yourself with the same content.
 
 ### Delegation policy
 

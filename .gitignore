@@ -1,12 +1,8 @@
-# Node.js
-node_modules/
-# Root-only: the tsc build output (npm package). The committed, self-contained
-# plugin bundle at plugins/mcp-gemini-server/dist/ is intentionally NOT ignored.
-/dist/
-*.log
-coverage/
-.coverage
-*.tsbuildinfo
+# Rust build artifacts
+/target/
+*.rs.bk
+*.rlib
+*.prof*
 
 # IDEs
 .idea/
@@ -17,6 +13,7 @@ coverage/
 # Environment variables
 .env
 .env.local
+*.log
 
 # OS
 .DS_Store
@@ -38,7 +35,3 @@ Thumbs.db
 
 # secretlint local-only denylist (company/personal terms — never committed)
 .secretlintrc.local.json
-
-# Rust port build artifacts (028-rust-port branch)
-/target/
-/tmp/
