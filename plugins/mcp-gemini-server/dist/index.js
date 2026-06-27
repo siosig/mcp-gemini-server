@@ -74643,7 +74643,7 @@ function createMcpServer(opts) {
 // package.json
 var package_default = {
   name: "mcp-gemini-server",
-  version: "2.1.1",
+  version: "2.2.0",
   description: "A thin, stdio Model Context Protocol (MCP) server exposing the Google Gemini API as composable primitives: chat, web search, role-based agents, multimodal analysis, image generation, code execution, and file management.",
   type: "module",
   main: "dist/index.js",
