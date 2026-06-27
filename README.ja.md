@@ -35,8 +35,9 @@ TypeScript 6 / Node.js 24（ESM）で実装し、公式 [`@google/genai`](https:
 
 ## 要件
 
+- PATH 上の [`bun`](https://bun.sh) — プラグインの MCP サーバーを起動（`npm i -g bun`）
 - Node.js >= 24.14.0
-- [pnpm](https://pnpm.io) 10 以上（または npm）
+- [pnpm](https://pnpm.io) 10 以上（または npm）— ソースからビルドする場合のみ必要
 
 ## Claude Code プラグインとしてインストール（推奨）
 
@@ -52,6 +53,12 @@ Claude Code 利用者向けの最短経路。1 回の install で、`gemini` MCP
 /plugin install mcp-gemini-server@mcp-gemini-server
 ```
 
+または、非対話インストーラを実行（CLI で上記2ステップを実施）:
+
+```bash
+./install_claude_plugin.sh
+```
+
 続いて Gemini API キーを **いずれか** の方法で供給します:
 
 - **環境変数**（env を MCP プロセスへ伝播するクライアント）:
@@ -65,17 +72,14 @@ Claude Code 利用者向けの最短経路。1 回の install で、`gemini` MCP
   ```
   優先順位は **環境変数 > 設定ファイル**。パスは `GEMINI_MCP_CONFIG=/path/to/file.json` で上書き可。
 
-プラグインの MCP サーバーは `npx -y mcp-gemini-server@npm:mcp-gemini-server@2` で起動します。
-`@npm:` エイリアスで `npx` にレジストリ解決を強制しています。素の `mcp-gemini-server@2` だと、
-クライアントの作業ディレクトリがサーバー自身のリポジトリのとき npx がローカルパッケージと誤認し
-（pnpm ワークスペースでは自パッケージの bin が self-link されないため）、
-`sh: mcp-gemini-server: not found` で起動に失敗します。`npx` の
-オンデマンド解決が不安定な環境（特に VS Code 拡張）では、bin をグローバル install して
-直接起動に切り替えてください:
+プラグインの MCP サーバーは `bun ${CLAUDE_PLUGIN_ROOT}/dist/index.js` で起動します。
+プラグイン内にコミット済みの**自己完結バンドル**（単一ファイル）です。`npx` もレジストリ取得も
+起動時の `node_modules` 解決も不要で、**1 プロセス約 75MB** で動作します
+（従来の `npx` 起動は 2 つ目の Node プロセスを fork し、アイドル時 約 219MB でした）。
 
-```bash
-npm i -g mcp-gemini-server
-```
+**要件: [`bun`](https://bun.sh) が PATH 上にあること**（`npm i -g bun`、または bun.sh 参照）。
+バンドルは Node 互換なので、Node を使いたい場合はプラグインの `.mcp.json` の `command` を
+`bun` から `node` に変更すれば動作します。
 
 Gemini API キーは [Google AI Studio](https://aistudio.google.com/apikey) で取得できます。
 
@@ -132,6 +136,17 @@ pnpm dev            # ウォッチモード (tsx)
 pnpm test           # 全テスト (vitest)
 pnpm test:unit      # ユニットテストのみ
 pnpm build          # 型チェック + コンパイル
+pnpm build:plugin   # 自己完結プラグインサーバーをバンドル (bun)
+```
+
+**メンテナ向け:** プラグインは自己完結バンドル
+`plugins/mcp-gemini-server/dist/index.js` をコミット同梱しています。`src/` を変更したら
+再生成してコミットすることで、GitHub マーケットプレース install に反映されます:
+
+```bash
+pnpm build:plugin
+git add plugins/mcp-gemini-server/dist/index.js
+git commit && git push
 ```
 
 ## マルチエージェント統括

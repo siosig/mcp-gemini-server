@@ -1,5 +1,6 @@
 {
   "name": "mcp-gemini-server",
+  "description": "Marketplace for the mcp-gemini-server Claude Code plugin: the Gemini MCP server, the gemini-team skill, and the gemini-delegate subagent.",
   "owner": {
     "name": "Daisuke ITO"
   },
